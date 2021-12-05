@@ -4,6 +4,67 @@ from pprint import pprint
 import requests
 from datetime import datetime
 
+project_list = ["apache/beam",
+"apache/iceberg",
+"apache/arrow",
+"apache/flink",
+"apache/druid",
+"apache/hadoop",
+"apache/tvm",
+"apache/cassandra",
+"apache/kafka",
+"apache/hudi",
+"apache/incubator-mxnet",
+"apache/pinot",
+"apache/trafficserver",
+"apache/nifi",
+"apache/libcloud",
+"apache/cordova-ios",
+"apache/solr",
+"apache/arrow-rs",
+"apache/camel",
+"apache/incubator-nuttx",
+"apache/lucene",
+"apache/shardingsphere",
+"apache/rocketmq",
+"apache/cloudstack",
+"apache/groovy",
+"apache/zeppelin",
+"apache/ignite",
+"apache/dubbo",
+"apache/skywalking",
+"apache/hive",
+"apache/jclouds",
+"apache/avro",
+"apache/skywalking-java",
+"apache/arrow-datafusion",
+"apache/lucene-solr",
+"apache/storm",
+"apache/thrift",
+"apache/parquet-mr",
+"apache/superset",
+"apache/apisix",
+"apache/incubator-shenyu",
+"apache/cordova-plugin-camera",
+"apache/phoenix",
+"apache/activemq-artemis",
+"apache/cxf",
+"apache/impala",
+"apache/ozone",
+"apache/bigtop",
+"apache/maven-surefire",
+"apache/cordova-docs"]
+
+def get_merged_PRs(contributor,repo_name):
+    search_url = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:" + repo_name + "+author:" + contributor + "&per_page=100"
+
+    prs = requests.get(search_url).json()
+    list_of_sha = []
+    for pr in prs['items']:
+        pulls_url = "https://api.github.com/repos/" + repo_name + "/pulls/" + str(pr['number'])
+        sha = requests.get(pulls_url).json()
+        list_of_sha.append(sha['head']['sha'])
+    return list_of_sha
 
 def get_dict(token, start, end, dct) :
     #print(token)
@@ -64,6 +125,8 @@ def get_dict(token, start, end, dct) :
                     print(i['login'])
                     dct[each_repo]['contributors'][i['login']] = {}
                     urls = repo.contributors_url
+                    shas = get_merged_PRs(i['login'],each_repo)
+                    print(shas)
                     print(urls)
                     #commits = repo.get_commits(author=str(i['login']))
                     commits = repo.get_commits(author=str(i['login']))
@@ -86,4 +149,10 @@ def get_dict(token, start, end, dct) :
             j += 1
     print(dct)
     return dct
-    #print(len(dct['apache/kafka']['contributors']))
+
+
+token = os.getenv('GITHUB_TOKEN', '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')
+dict_test={}
+get_dict(token,5,10,dict_test)
+
+
