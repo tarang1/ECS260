@@ -176,7 +176,11 @@ def get_dict(token, start, end, dct) :
                     dct[each_repo]['contributors'][i['login']] = {}
                     urls = repo.contributors_url
                     shas = get_merged_PRs(i['login'],each_repo)
+                    contributor_ccn_list = []
                     print(shas)
+                    for commit in shas:
+                        contributor_ccn_list.append(get_ccn_difference_value(commit))
+                    print("###########{}###########".format(contributor_ccn_list))
                     print(urls)
                     #commits = repo.get_commits(author=str(i['login']))
                     commits = repo.get_commits(author=str(i['login']))
@@ -203,6 +207,6 @@ def get_dict(token, start, end, dct) :
 
 token = os.getenv('GITHUB_TOKEN', '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')
 dict_test={}
-get_dict(token,5,10,dict_test)
+get_dict(token,0,1,dict_test)
 
 
