@@ -3,6 +3,8 @@ import os
 from pprint import pprint
 import requests
 from datetime import datetime
+import subprocess
+import os
 
 project_list = ["apache/beam",
 "apache/iceberg",
@@ -54,6 +56,55 @@ project_list = ["apache/beam",
 "apache/bigtop",
 "apache/maven-surefire",
 "apache/cordova-docs"]
+
+def get_ccn_difference_value(sha):
+    # Parse the branch name
+    k =subprocess.check_output("git branch".split()).decode("utf-8").split("\n")
+
+    branch_name = ""
+    for l in k:
+        if "*" in l:
+            branch_name = l
+
+    branch_name = branch_name.split("*")[1].strip()
+
+    # Checkout the branch
+    os.system("git checkout -b temp")
+
+    # Rollback to the given commit
+    subprocess.check_output("git reset --hard {}".format(sha).split())
+    
+    # Run lizard and extract ccn
+    op = subprocess.check_output("lizard ./".split())
+    op = op.strip().decode('utf-8')
+
+
+    temp = op.splitlines()[-1:]
+    temp = temp[0].split(" ")
+    final_list = []
+    for i in range(len(temp)):
+        if temp[i]:
+            final_list.append(temp[i])
+    final_ccn_1 = final_list[2]
+
+    # Rollback to previous sha from head and run lizard to extract ccn
+    subprocess.check_output("git checkout HEAD~1".split())
+    op_1 = subprocess.check_output("lizard ./".split())
+    op_1 = op_1.strip().decode('utf-8')
+    #print(op_1)
+    temp_1 = op_1.splitlines()[-1:]
+    temp_1 = temp_1[0].split(" ")
+    final_list = []
+    for i in range(len(temp_1)):
+        if temp[i]:
+            final_list.append(temp_1[i])
+    final_ccn_2 = final_list[2]
+
+
+    _ = subprocess.check_output("git checkout {}".format(branch_name).split())
+    _ = subprocess.check_output("git branch -d temp".split())
+
+    return float(final_ccn_2) - float(final_ccn_1) 
 
 def get_merged_PRs(contributor,repo_name):
     search_url = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:" + repo_name + "+author:" + contributor + "&per_page=100"
