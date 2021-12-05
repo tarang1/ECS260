@@ -69,10 +69,10 @@ def get_ccn_difference_value(sha):
     branch_name = branch_name.split("*")[1].strip()
 
     # Checkout the branch
-    os.system("git checkout -b temp")
+    os.system("git checkout "+sha)
 
     # Rollback to the given commit
-    subprocess.check_output("git reset --hard {}".format(sha).split())
+    # subprocess.check_output("git reset --hard {}".format(sha).split())
     
     # Run lizard and extract ccn
     op = subprocess.check_output("lizard ./".split())
@@ -88,7 +88,7 @@ def get_ccn_difference_value(sha):
     final_ccn_1 = final_list[2]
 
     # Rollback to previous sha from head and run lizard to extract ccn
-    subprocess.check_output("git checkout HEAD~1".split())
+    subprocess.check_output("git checkout HEAD~2".split())
     op_1 = subprocess.check_output("lizard ./".split())
     op_1 = op_1.strip().decode('utf-8')
     #print(op_1)
@@ -102,9 +102,8 @@ def get_ccn_difference_value(sha):
 
 
     _ = subprocess.check_output("git checkout {}".format(branch_name).split())
-    _ = subprocess.check_output("git branch -d temp".split())
 
-    return float(final_ccn_2) - float(final_ccn_1) 
+    return float(final_ccn_1) - float(final_ccn_2) 
 
 def get_merged_PRs(contributor,repo_name):
     search_url = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:" + repo_name + "+author:" + contributor + "&per_page=100"
