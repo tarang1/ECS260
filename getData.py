@@ -6,60 +6,65 @@ from datetime import datetime
 import subprocess
 import os
 
-project_list = ["apache/beam",
-"apache/iceberg",
-"apache/arrow",
-"apache/flink",
-"apache/druid",
-"apache/hadoop",
-"apache/tvm",
-"apache/cassandra",
-"apache/kafka",
-"apache/hudi",
-"apache/incubator-mxnet",
-"apache/pinot",
-"apache/trafficserver",
-"apache/nifi",
-"apache/libcloud",
-"apache/cordova-ios",
-"apache/solr",
-"apache/arrow-rs",
-"apache/camel",
-"apache/incubator-nuttx",
-"apache/lucene",
-"apache/shardingsphere",
-"apache/rocketmq",
-"apache/cloudstack",
-"apache/groovy",
-"apache/zeppelin",
-"apache/ignite",
-"apache/dubbo",
-"apache/skywalking",
-"apache/hive",
-"apache/jclouds",
-"apache/avro",
-"apache/skywalking-java",
-"apache/arrow-datafusion",
-"apache/lucene-solr",
-"apache/storm",
-"apache/thrift",
-"apache/parquet-mr",
-"apache/superset",
-"apache/apisix",
-"apache/incubator-shenyu",
-"apache/cordova-plugin-camera",
-"apache/phoenix",
-"apache/activemq-artemis",
-"apache/cxf",
-"apache/impala",
-"apache/ozone",
-"apache/bigtop",
-"apache/maven-surefire",
-"apache/cordova-docs"]
+# project_list = ["apache/beam",
+#                 "apache/iceberg",
+#                 "apache/arrow",
+#                 "apache/flink",
+#                 "apache/druid",
+#                 "apache/hadoop",
+#                 "apache/tvm",
+#                 "apache/cassandra",
+#                 "apache/kafka",
+#                 "apache/hudi",
+#                 "apache/incubator-mxnet",
+#                 "apache/pinot",
+#                 "apache/trafficserver",
+#                 "apache/nifi",
+#                 "apache/libcloud",
+#                 "apache/cordova-ios",
+#                 "apache/solr",
+#                 "apache/arrow-rs",
+#                 "apache/camel",
+#                 "apache/incubator-nuttx",
+#                 "apache/lucene",
+#                 "apache/shardingsphere",
+#                 "apache/rocketmq",
+#                 "apache/cloudstack",
+#                 "apache/groovy",
+#                 "apache/zeppelin",
+#                 "apache/ignite",
+#                 "apache/dubbo",
+#                 "apache/skywalking",
+#                 "apache/hive",
+#                 "apache/jclouds",
+#                 "apache/avro",
+#                 "apache/skywalking-java",
+#                 "apache/arrow-datafusion",
+#                 "apache/lucene-solr",
+#                 "apache/storm",
+#                 "apache/thrift",
+#                 "apache/parquet-mr",
+#                 "apache/superset",
+#                 "apache/apisix",
+#                 "apache/incubator-shenyu",
+#                 "apache/cordova-plugin-camera",
+#                 "apache/phoenix",
+#                 "apache/activemq-artemis",
+#                 "apache/cxf",
+#                 "apache/impala",
+#                 "apache/ozone",
+#                 "apache/bigtop",
+#                 "apache/maven-surefire",
+#                 "apache/cordova-docs"]
+
+project_list = ["apache/kafka"]
+
 
 def get_ccn_difference_value(sha):
     # Parse the branch name
-    k =subprocess.check_output("git branch".split()).decode("utf-8").split("\n")
+    import pdb
+    pdb.set_trace()
+    k = subprocess.check_output("git branch".split()).decode("utf-8").split("\n")
 
     branch_name = ""
     for l in k:
@@ -69,15 +74,14 @@ def get_ccn_difference_value(sha):
     branch_name = branch_name.split("*")[1].strip()
 
     # Checkout the branch
-    os.system("git checkout "+sha)
+    os.system("git checkout " + sha)
 
     # Rollback to the given commit
     # subprocess.check_output("git reset --hard {}".format(sha).split())
-    
+
     # Run lizard and extract ccn
     op = subprocess.check_output("lizard ./".split())
     op = op.strip().decode('utf-8')
-
 
     temp = op.splitlines()[-1:]
     temp = temp[0].split(" ")
@@ -91,7 +95,7 @@ def get_ccn_difference_value(sha):
     subprocess.check_output("git checkout HEAD~2".split())
     op_1 = subprocess.check_output("lizard ./".split())
     op_1 = op_1.strip().decode('utf-8')
-    #print(op_1)
+    # print(op_1)
     temp_1 = op_1.splitlines()[-1:]
     temp_1 = temp_1[0].split(" ")
     final_list = []
@@ -100,12 +104,12 @@ def get_ccn_difference_value(sha):
             final_list.append(temp_1[i])
     final_ccn_2 = final_list[2]
 
-
     _ = subprocess.check_output("git checkout {}".format(branch_name).split())
 
-    return float(final_ccn_1) - float(final_ccn_2) 
+    return float(final_ccn_1) - float(final_ccn_2)
 
-def get_merged_PRs(contributor,repo_name):
+
+def get_merged_PRs(contributor, repo_name):
     search_url = "https://api.github.com/search/issues?q=is:pr+is:merged+repo:" + repo_name + "+author:" + contributor + "&per_page=100"
 
     prs = requests.get(search_url).json()
@@ -116,49 +120,61 @@ def get_merged_PRs(contributor,repo_name):
         list_of_sha.append(sha['head']['sha'])
     return list_of_sha
 
-def get_dict(token, start, end, dct) :
-    #print(token)
+def get_contributor_category(days,trl):
+    if days/trl < 0.5:
+        return "Short"
+    elif days/trl >= 0.5:
+        return "Long"
+
+def get_dict(token, start, end, dct):
+    # print(token)
     g = Github(token)
-    #repos = ['apache/kafka','misterokaygo/MapAssist']
-    #d10_20 = {}
+    # repos = ['apache/kafka','misterokaygo/MapAssist']
+    # d10_20 = {}
     for each_repo in project_list[start:end]:
         dct[each_repo] = {}
         repo = g.get_repo(each_repo)
         print(repo.contributors_url)
-        #print(repo.contributors_url.count)
+        created_at = repo.created_at
+        updated_at = repo.updated_at
+
+        # trl is total repo lifespan
+        trl = updated_at-created_at
+        dct[each_repo]['trl'] = trl.days
+        # print(repo.contributors_url.count)
         print(g.rate_limiting)
-    #repo = g.get_repo('misterokaygo/MapAssist')
+        # repo = g.get_repo('misterokaygo/MapAssist')
         urls = repo.contributors_url + '?per_page=100'
         print(type(urls))
-        #commits = repo.get_commits(author='niket-goel')
-        #fc = list(commits)[6]
-        #print(list(commits)[0])
-        #author = repo.get_commit(commits[1].sha).author
-        #print(author)
+        # commits = repo.get_commits(author='niket-goel')
+        # fc = list(commits)[6]
+        # print(list(commits)[0])
+        # author = repo.get_commit(commits[1].sha).author
+        # print(author)
         # for each_commit in commits:
         #     print("******", each_commit)
-        #print(repo.commits_url)
+        # print(repo.commits_url)
         issues_url = repo.issues_url[:-16]
-        #print(repo.full_name)
-        #print(len(issues_url))
+        # print(repo.full_name)
+        # print(len(issues_url))
         dct[each_repo]['issues'] = requests.get(issues_url).json()['open_issues_count']
-    #print(dct)
+        # print(dct)
         r = requests.get(urls)
         j = 0
-        if len(r.links) !=0:
+        if len(r.links) != 0:
             max_page = int(r.links.get('last')['url'].split('=')[-1])
         else:
-            max_page =1
+            max_page = 1
         print(type(max_page))
-        #dct[each_repo]['contributors'] = []
+        # dct[each_repo]['contributors'] = []
         dct[each_repo]['contributors'] = {}
-        while(j<max_page):
+        while (j < max_page):
             r = requests.get(urls)
             # print(r.links)
             # print(int(r.links.get('last')['url'].split('=')[1]))
-            #print(r.headers['Link'])
-            #r2 = requests.get(issues_url)
-            #print(r2.text)
+            # print(r.headers['Link'])
+            # r2 = requests.get(issues_url)
+            # print(r2.text)
             # commits = repo.get_commits(author='junrao')
             # print(commits.totalCount)
             # print(len(list(commits)))
@@ -167,37 +183,38 @@ def get_dict(token, start, end, dct) :
             # print('ableegoldman', 'first commit time:' + first_commit_time, 'last_commit_time:' + last_commit_time)
             # break
             for i in r.json():
-                #print(i)
-                if(i == 'message'):
+                # print(i)
+                if (i == 'message'):
                     print('FO')
                     print(r.json()[i])
                 else:
                     print(i['login'])
                     dct[each_repo]['contributors'][i['login']] = {}
                     urls = repo.contributors_url
-                    shas = get_merged_PRs(i['login'],each_repo)
-                    contributor_ccn_list = []
-                    print(shas)
-                    for commit in shas:
-                        contributor_ccn_list.append(get_ccn_difference_value(commit))
-                    print("###########{}###########".format(contributor_ccn_list))
+                    # shas = get_merged_PRs(i['login'], each_repo)
+                    # contributor_ccn_list = []
+                    # print(shas)
+                    # for commit in shas:
+                    #     contributor_ccn_list.append(get_ccn_difference_value(commit))
+                    # print("###########{}###########".format(contributor_ccn_list))
                     print(urls)
-                    #commits = repo.get_commits(author=str(i['login']))
+                    # commits = repo.get_commits(author=str(i['login']))
                     commits = repo.get_commits(author=str(i['login']))
                     print(commits.totalCount)
                     if len(list(commits)) == 0:
                         continue
-                    #print(commits.totalCount)
-                    #print(len(list(commits)))
+                    # print(commits.totalCount)
+                    # print(len(list(commits)))
                     dct[each_repo]['contributors'][i['login']] = {}
-                    first_commit_time = (list(commits)[len(list(commits))-1]).last_modified
+                    first_commit_time = (list(commits)[len(list(commits)) - 1]).last_modified
                     last_commit_time = (list(commits)[0]).last_modified
-                    d1 = datetime.strptime(last_commit_time,'%a, %d %b %Y %H:%M:%S GMT')
-                    d2 = datetime.strptime(first_commit_time,'%a, %d %b %Y %H:%M:%S GMT')
-                    dct[each_repo]['contributors'][i['login']]['lifespan'] = (d1-d2).days + 1
+                    d1 = datetime.strptime(last_commit_time, '%a, %d %b %Y %H:%M:%S GMT')
+                    d2 = datetime.strptime(first_commit_time, '%a, %d %b %Y %H:%M:%S GMT')
+                    dct[each_repo]['contributors'][i['login']]['lifespan'] = (d1 - d2).days + 1
+                    dct[each_repo]['contributors'][i['login']]['category'] = get_contributor_category((d1 - d2).days , trl.days)
                     dct[each_repo]['contributors'][i['login']]['commits'] = commits.totalCount
-                    print((d1-d2).days)
-                    #print(i['login'],'first commit time:'+first_commit_time, 'last_commit_time:'+last_commit_time )
+                    print((d1 - d2).days)
+                    # print(i['login'],'first commit time:'+first_commit_time, 'last_commit_time:'+last_commit_time )
             if r.links.get('next'):
                 urls = r.links.get('next')['url']
             j += 1
@@ -205,8 +222,6 @@ def get_dict(token, start, end, dct) :
     return dct
 
 
-token = os.getenv('GITHUB_TOKEN', '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')
-dict_test={}
-get_dict(token,0,1,dict_test)
-
-
+token = os.getenv('GITHUB_TOKEN', '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')
+dict_test = {}
+get_dict(token, 0, 1, dict_test)
