@@ -280,11 +280,7 @@ if len(sys.argv) > 1 :
 	
 	
 	directory = ''
-	if inputfile == 'kafka_ls' :
-		directory = './' 
-	else :
-		directory = '../ECS260/'
-	 
+	
 	if graphplot == 'ccn' or graphplot == 'ccn_variability' :
 		data, _ = parse_json(directory + inputfile + '.json', 'ccn')
 	elif graphplot == 'lifespan' or graphplot == 'commits' or graphplot == 'lifespan-commit' :
