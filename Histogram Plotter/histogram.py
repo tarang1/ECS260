@@ -205,10 +205,13 @@ def histogram(data, type_of_histogram, filename = "") :
 		
 		
 		colors = ['blue', 'red']
-		plt.bar(list(x.keys()), list(x.values()), color=colors)
+		bar = plt.bar(list(x.keys()), list(x.values()), color=colors)
 		
 		#test.legend()
-		
+		for rect in bar :
+			height = rect.get_height()
+			plt.text(rect.get_x() + rect.get_width() / 2.0, height, f'{height:.0f}', ha='center', va='bottom')
+
 		test.show() 
 		test.savefig(filename)
 		
