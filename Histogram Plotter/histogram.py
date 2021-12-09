@@ -190,6 +190,39 @@ def histogram(data, type_of_histogram, filename = "") :
 		
 		PolynomialRegression(x, y, categories, deg = 7, filename=filename, x_name = "Lifespan", y_name = "Number of Commits")
 			
+	elif type_of_histogram == 'short-long' :
+		x = {}
+		for i in data :
+			if i[2] not in x :
+				x[i[2]] = 1
+			else :
+				x[i[2]] += 1
+		
+		test = plt.figure()
+		
+		plt.xlabel('Short-term and Long-term Contributors')
+		plt.ylabel('Frequency')
+		
+		plt.bar(list(x.keys()), list(x.values()))
+		
+		test.show() 
+		test.savefig(filename)
+		
+		'''
+		x = list(range(len(data)))
+		y = [i[1] for i in data]
+		
+		test = plt.figure()
+		
+		plt.xlabel('Contributor List')
+		plt.ylabel('Lifespan by Contributor')
+		
+		plt.bar(x, y, color = ['red'])	
+		
+		test.show() 
+		test.savefig(filename)
+		'''
+	
 	elif type_of_histogram == 'ccn' :
 		x = [i[1] for i in data]
 		y = [i[0] for i in data[::-1]]
@@ -284,7 +317,7 @@ if len(sys.argv) > 1 :
 	
 	if graphplot == 'ccn' or graphplot == 'ccn_variability' :
 		data, _ = parse_json(input_directory + inputfile + '.json', 'ccn')
-	elif graphplot == 'lifespan' or graphplot == 'commits' or graphplot == 'lifespan-commit' :
+	elif graphplot == 'lifespan' or graphplot == 'commits' or graphplot == 'lifespan-commit' or graphplot == 'short-long' :
 		data = parse_json(input_directory + inputfile + '.json', 'lifespan')
 	histogram(data, graphplot, output_directory + inputfile + '_' + graphplot + '.png')
 
