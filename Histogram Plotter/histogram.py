@@ -203,7 +203,11 @@ def histogram(data, type_of_histogram, filename = "") :
 		plt.xlabel('Short-term and Long-term Contributors')
 		plt.ylabel('Frequency')
 		
-		plt.bar(list(x.keys()), list(x.values()))
+		
+		colors = ['blue', 'red']
+		plt.bar(list(x.keys()), list(x.values()), color=colors)
+		
+		#test.legend()
 		
 		test.show() 
 		test.savefig(filename)
